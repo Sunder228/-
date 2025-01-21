@@ -1,0 +1,234 @@
+unit Unit1;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Math;
+
+type
+  TForm1 = class(TForm)
+    EditA: TEdit;
+    ButtonClear: TButton;
+    EditAngleAB: TEdit;
+    EditC: TEdit;
+    EditAngleCA: TEdit;
+    EditAngleBC: TEdit;
+    EditB: TEdit;
+    Memo1: TMemo;
+    ButtonCalc: TButton; // Одна кнопка для всех расчетов
+    EditX2: TEdit;
+    EditX1: TEdit;
+    EditY1: TEdit;
+    EditY2: TEdit;
+    EditY3: TEdit;
+    EditX3: TEdit;
+    RadioButtonHeron: TRadioButton;
+    RadioButtonAngleSides: TRadioButton;
+    RadioButtonSinus: TRadioButton;
+    RadioButtonCoords: TRadioButton;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    Label6: TLabel;
+    procedure FormCreate(Sender: TObject);
+    procedure ButtonCalcClick(Sender: TObject);
+    procedure ButtonClearClick(Sender: TObject);
+    procedure RadioButtonChange(Sender: TObject);
+  private
+    { Private declarations }
+    procedure EnableFieldsForSelectedMethod;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+function CalculateAreaHeron(a, b, c: Double): Double;
+var
+  s: Double;
+begin
+  s := (a + b + c) / 2;
+  Result := Sqrt(s * (s - a) * (s - b) * (s - c));
+end;
+
+function CalculateAreaAngle(a, b, angle: Double): Double;
+begin
+  Result := 0.5 * a * b * Sin(angle * Pi / 180); // Угол в градусах
+end;
+
+function CalculateAreaSinus(a, b, angleC: Double): Double;
+begin
+  Result := 0.5 * a * b * Sin(angleC * Pi / 180); // Угол в градусах
+end;
+
+function CalculateAreaCoords(x1, y1, x2, y2, x3, y3: Double): Double;
+begin
+  Result := Abs((x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2)) / 2);
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  // Инициализация полей ввода с дефолтными значениями
+  EditA.Text := '3';
+  EditB.Text := '4';
+  EditC.Text := '5';
+  EditAngleAB.Text := '90';
+  EditAngleCA.Text := '60';
+  EditAngleBC.Text := '30';
+
+  // Координаты для метода через координаты
+  EditX1.Text := '0';
+  EditY1.Text := '0';
+  EditX2.Text := '3';
+  EditY2.Text := '0';
+  EditX3.Text := '3';
+  EditY3.Text := '4';
+
+  // Очистим Memo
+  Memo1.Clear;
+
+  // Устанавливаем начальный метод (Герон)
+  RadioButtonSinus.Checked := True;
+  EnableFieldsForSelectedMethod;
+end;
+
+procedure TForm1.RadioButtonChange(Sender: TObject);
+begin
+  EnableFieldsForSelectedMethod;
+end;
+
+procedure TForm1.EnableFieldsForSelectedMethod;
+begin
+  // Блокируем все поля ввода по умолчанию
+  EditA.Enabled := False;
+  EditB.Enabled := False;
+  EditC.Enabled := False;
+  EditAngleAB.Enabled := False;
+  EditAngleCA.Enabled := False;
+  EditAngleBC.Enabled := False;
+  EditX1.Enabled := False;
+  EditY1.Enabled := False;
+  EditX2.Enabled := False;
+  EditY2.Enabled := False;
+  EditX3.Enabled := False;
+  EditY3.Enabled := False;
+
+  // Включаем только нужные поля в зависимости от выбранного метода
+  if RadioButtonHeron.Checked then
+  begin
+    EditA.Enabled := True;
+    EditB.Enabled := True;
+    EditC.Enabled := True;
+  end
+  else if RadioButtonAngleSides.Checked then
+  begin
+    EditA.Enabled := True;
+    EditB.Enabled := True;
+    EditAngleAB.Enabled := True;
+  end
+  else if RadioButtonSinus.Checked then
+  begin
+    EditA.Enabled := True;
+    EditB.Enabled := True;
+    EditAngleCA.Enabled := True;
+  end
+  else if RadioButtonCoords.Checked then
+  begin
+    EditX1.Enabled := True;
+    EditY1.Enabled := True;
+    EditX2.Enabled := True;
+    EditY2.Enabled := True;
+    EditX3.Enabled := True;
+    EditY3.Enabled := True;
+  end;
+end;
+
+procedure TForm1.ButtonCalcClick(Sender: TObject);
+var
+  a, b, c, angle, angleC, area: Double;
+  x1, y1, x2, y2, x3, y3: Double;
+begin
+
+  if RadioButtonHeron.Checked then
+  begin
+    // Метод Герона (3 стороны)
+    a := StrToFloat(EditA.Text);
+    b := StrToFloat(EditB.Text);
+    c := StrToFloat(EditC.Text);
+    area := CalculateAreaHeron(a, b, c);
+    Memo1.Lines.Add('Площадь по формуле Герона: ' + FloatToStr(area));
+  end
+  else if RadioButtonAngleSides.Checked then
+  begin
+    // Метод через угол и две стороны
+    a := StrToFloat(EditA.Text);
+    b := StrToFloat(EditB.Text);
+    angle := StrToFloat(EditAngleAB.Text);
+    area := CalculateAreaAngle(a, b, angle);
+    Memo1.Lines.Add('Площадь по двум сторонам и углу: ' + FloatToStr(area));
+  end
+  else if RadioButtonSinus.Checked then
+  begin
+    // Метод через синус
+    a := StrToFloat(EditA.Text);
+    b := StrToFloat(EditB.Text);
+    angleC := StrToFloat(EditAngleCA.Text);
+    area := CalculateAreaSinus(a, b, angleC);
+    Memo1.Lines.Add('Площадь по теореме синусов: ' + FloatToStr(area));
+  end
+  else if RadioButtonCoords.Checked then
+  begin
+    // Метод через координаты
+    x1 := StrToFloat(EditX1.Text);
+    y1 := StrToFloat(EditY1.Text);
+    x2 := StrToFloat(EditX2.Text);
+    y2 := StrToFloat(EditY2.Text);
+    x3 := StrToFloat(EditX3.Text);
+    y3 := StrToFloat(EditY3.Text);
+    area := CalculateAreaCoords(x1, y1, x2, y2, x3, y3);
+    Memo1.Lines.Add('Площадь по координатам вершин: ' + FloatToStr(area));
+  end;
+end;
+
+procedure TForm1.ButtonClearClick(Sender: TObject);
+begin
+  // Очистка всех полей ввода и Memo
+  EditA.Clear;
+  EditB.Clear;
+  EditC.Clear;
+  EditAngleAB.Clear;
+  EditAngleCA.Clear;
+  EditAngleBC.Clear;
+  EditX1.Clear;
+  EditY1.Clear;
+  EditX2.Clear;
+  EditY2.Clear;
+  EditX3.Clear;
+  EditY3.Clear;
+  Memo1.Clear;
+      EditA.Text := '3';
+  EditB.Text := '4';
+  EditC.Text := '5';
+  EditAngleAB.Text := '90';
+  EditAngleCA.Text := '60';
+  EditAngleBC.Text := '30';
+
+  // Координаты для метода через координаты
+  EditX1.Text := '0';
+  EditY1.Text := '0';
+  EditX2.Text := '3';
+  EditY2.Text := '0';
+  EditX3.Text := '3';
+  EditY3.Text := '4';
+end;
+
+end.
+
